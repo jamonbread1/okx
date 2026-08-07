@@ -1,0 +1,41 @@
+# VOL 策略参数（裸 key，无前缀）
+
+# Bollinger Bands 周期
+bb_period: 20
+
+# BBW squeeze 阈值；前 N 根 BBW < 此值才视为处于 squeeze
+bbw_squeeze: 0.035
+
+# 放量倍数下限（当前 vol / 20 根均量）
+volume_mult: 1.3
+
+# RSI 中性区下限 / 上限。RSI 越界视为极值，假突破概率高
+rsi_low: 35.0
+rsi_high: 65.0
+
+# 突破缓冲（价格相对 BB 上/下轨的最小偏离比例）
+breakout_buffer: 0.0003
+
+# 单次开仓权益占比
+position_pct: 0.05
+
+# 止损 = max(ATR * sl_atr_mult, price * 0.5%)
+sl_atr_mult: 1.8
+
+# 止盈 = ATR * tp_atr_mult（仅作用于期望 R 过滤，vol 实际分批止盈是 [1R, 1.5R, 2.5R]）
+tp_atr_mult: 3.5
+
+# 净期望 R 过滤阈值
+min_expectancy: 0.1
+
+# 单边滑点
+slippage_pct: 0.00035
+
+# 单边手续费率
+fee_rt: 0.0007
+
+# 做空方向仓位乘数
+short_penalty: 0.7
+
+# squeeze 持续根数（当前根之前）
+squeeze_hold: 3

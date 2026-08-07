@@ -1,0 +1,25 @@
+# EWMAC 策略参数（裸 key，无前缀）
+
+# 双 EWMAC 共振：快线 1 / 慢线 1（短周期）
+fast_1: 8
+slow_1: 32
+
+# 双 EWMAC 共振：快线 2 / 慢线 2（长周期）
+fast_2: 16
+slow_2: 64
+
+# EWMAC 信号阈值（按价格归一化后，跨品种可比）
+threshold: 0.005
+
+# ADX 下限
+min_adx: 20.0
+
+# 单次开仓权益占比
+position_pct: 0.05
+
+# 止损 / 止盈 ATR 倍数
+sl_atr_mult: 2.0
+tp_atr_mult: 3.0
+
+# 单边滑点
+slippage_pct: 0.0003

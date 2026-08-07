@@ -1,0 +1,36 @@
+# MR 策略参数（裸 key，无前缀）
+
+# Bollinger Bands 周期
+bb_period: 20
+
+# RSI 周期
+rsi_period: 14
+
+# RSI 超卖 / 超买阈值
+rsi_oversold: 30.0
+rsi_overbought: 70.0
+
+# ADX 上限：超过此值视为趋势区，不开仓（MR 只在 chop 区工作）
+max_adx: 25.0
+
+# EMA 趋势过滤周期
+ema_filter: 50
+
+# 价格偏离 EMA 距离上限（ATR 单位）
+ema_atr_mult: 2.5
+
+# 单次开仓权益占比
+position_pct: 0.04
+
+# 止损 / 止盈 ATR 倍数
+sl_atr_mult: 2.0
+tp_atr_mult: 1.5
+
+# 净期望 R 阈值
+min_expectancy: 0.05
+
+# 单边滑点
+slippage_pct: 0.0003
+
+# 单边手续费率
+fee_rt: 0.0007

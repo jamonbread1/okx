@@ -1,0 +1,88 @@
+# MING 策略参数（裸 key，无前缀）
+
+
+# ---- 双触发：don 部分 ----
+don_period: 20
+don_min_adx: 20.0
+don_vol_ratio: 1.0
+don_max_wick_ratio: 2.0
+# v3: 真正实现"窗口共振" — 突破在最近 N 根 K 内都视为有效
+don_min_break_hold_bars: 3   # 突破后 3 根 K 内仍视为有效 (v3: 1→3)
+
+# ---- 双触发：macd 部分 ----
+macd_fast: 12
+macd_slow: 26
+macd_signal: 9
+macd_min_adx: 20.0
+# v3: macd_rsi_low / macd_rsi_high 是死参数（_macd_signal 未引用）
+# 移除, 减少调参空间（避免无意义的过拟合风险）
+# macd_rsi_low: 65.0
+# macd_rsi_high: 35.0
+
+# ---- 加权评分 ----
+w_don: 0.60      # don 突破权重
+w_macd: 0.40     # macd 动量权重
+                   # 自动归一化（loader 保证 w_don + w_macd = 1.0）
+
+# ---- 入场门控 ----
+require_dual_trigger: true   # 硬 AND：don + macd 都要触发
+min_entry_conf: 0.55          # 加权 conf 低于此值不开仓
+
+# ---- 风险预算（仓位）----
+# v3 语义修正: risk_pct = 单笔基础风险占权益比例
+# 之前 0.020 实际是 2% — 但代码里又乘 conf_mult(0~1) 和 vol_mult(0.5/1.0)
+# 所以 0.020 实际仓位接近 0.5% (0.020 * 0.25 评分中位 * 1.0 vol), 不是 2%
+# v3: 真实"单笔基础风险", 默认 0.0075 (0.75%) — 真正对应 0.75% 单笔风险
+# v3: conf_mult ∈ [0.75, 1.25] 温和调整, vol_mult 0.7 (不再 0.5)
+risk_pct: 0.0075              # 0.75% / 单笔 (v3: 0.020→0.0075, 修正语义)
+
+# ---- 初始止损（结构 + ATR 双底 + 最低距离）----
+# D = max(k_vol(natr_pct) * ATR_14, cur_price * f_min)
+# SL_0 = min(cur_price - D, L_n - b*ATR_14)   for long
+# k_vol 按 NATR 百分位连续插值（避免分档跳变）
+sl_k_vol_low: 1.4              # NATR < 25% 分位
+sl_k_vol_mid: 1.8              # NATR 25-75% 分位（按线性插值）
+sl_k_vol_high: 2.5             # NATR > 75% 分位 (原: 2.3→2.5, 1D 高波动期更宽 SL)
+sl_struct_lookback: 8          # 结构低/高点的回看 K 线数
+sl_struct_buffer_atr: 0.2     # 结构止损外加的 ATR 缓冲
+sl_floor_pct: 0.005            # 0.5% 最低距离
+
+# ---- 波动率自适应（NATR 百分位窗口）----
+natr_lookback: 120             # NATR 历史回看
+natr_ema_period: 20            # 急性扩张检测用 EMA
+natr_pause_mult: 1.5           # NATR/EMA(NATR) > 此值 → 当日不开新仓
+natr_shrink_pct: 0.85          # NATR 百分位 >= 此值 → 仓位缩到 0.5x (原: 0.75→0.85)
+natr_block_pct: 0.99           # NATR 百分位 >= 此值 → 熔断（不开仓）(原: 0.95→0.99, 1D 波动常态大)
+
+# ---- 趋势过滤 ----
+trend_ma_period: 50            # 1D MA50
+trend_min_adx: 18.0            # ADX 低于此不开仓
+# 1W 高周期母趋势过滤 (新增)：周线 MA 下方不做多、上方不做空
+# 用 1D close resample 到 1W 再算 MA 即可，无需外部 htf df
+htf_weekly_ma_period: 20       # 1W MA20 (≈ 1 季度)；0 表示关闭
+htf_weekly_min_gap: 0.0        # 母趋势 vs 当前价的最小 gap（不开仓的容差），默认 0 = 严格
+
+# ---- 时间止损（引擎读）----
+timeout_mfe_bars: 3            # 3 日内 MFE < 0.5R → 退出
+timeout_mfe_r: 0.5
+timeout_breakout_bars: 5       # 5 日未破入场 K 线 high → 退出
+timeout_max_bars: 25           # 25 日硬上限 (v8: 45→25, 释放资金;不让单笔吃太多时间)
+# ---- v5 动态 max_bars：高 NATR 段减半（避免 2024-08 闪崩段仓位扛满 30 天）----
+max_bars_vol_halve_natr: 0.05       # NATR 超过 5% 触发减半
+max_bars_vol_halve_factor: 0.5      # 减半系数（max_bars 从 30 → 15）
+
+# ---- panic exit ----
+panic_gap_atr: 1.0             # 跳空低开 > 1*ATR 且未收复 → 主动平
+
+# ---- +1R / +1.5R / +2R 管理（引擎读）----
+r1_be_buffer_atr: 0.3          # +1R → SL 上移到 entry - 0.3*ATR (v8: 0.5→0.3, 更紧保本;正常回踩不被洗)
+r15_partial_pct: 0.35          # +1.5R → 减仓 35% (v8: 0.20→0.35, 加速资金周转;回踩先锁部分收益)
+r2_chandelier_N: 10            # +2R → 启 Chandelier，HH_22 - k*ATR
+r2_chandelier_k: 3.5           # 1D Chandelier k (v8: 5.5→3.5, +2R 后更紧;让收益跑出去 vs 闪崩扛单)
+
+# ---- 跨策略共用（Engine._calc_size 需 slip / fee）----
+slippage_pct: 0.0004
+fee_rt: 0.0007
+
+# ---- ATR 周期 ----
+atr_period: 14

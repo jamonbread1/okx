@@ -1,0 +1,39 @@
+# DON 策略参数（裸 key，无前缀）
+# -----------------------------------------------------------------------------
+# 引擎级 / 跨策略字段仍在 config.yaml → strategy: 段下管理
+# （如 min_open_confidence / position_timeout_sec / signal_bar / regime_* 等）
+# 这里只放 DON 自己的参数。
+# -----------------------------------------------------------------------------
+
+# 唐奇安通道周期。越大信号越少但越稳。1H 上 28 ≈ 1.16 天。
+period: 28
+
+# 突破方向需要 ADX >= min_adx 才开仓。1H 上 25 滤掉 60% 的低趋势 bar。
+min_adx: 25.0
+
+# 当前成交量 / 20 根均量 的下限。低于此视为量能不足，不开仓。
+vol_ratio: 1.3
+
+# 单根 K 线最大影线 / 实体比。超过视为假突破（上影线过长 / 下影线过长）。
+max_wick_ratio: 2.0
+
+# 单次开仓占组合权益的比例（仓位预算）。short 还会乘 short_penalty。
+position_pct: 0.04
+
+# 止损 = max(ATR * sl_atr_mult, price * 0.5%)
+sl_atr_mult: 1.8
+
+# 止盈 = ATR * tp_atr_mult（仅作参考，don 实际分批止盈是 [1R, 2R, 3R]）
+tp_atr_mult: 3.5
+
+# 单边滑点估算，用于止损/止盈价内的成本补偿
+slippage_pct: 0.0004
+
+# 单边手续费率（往返 * 2）
+fee_rt: 0.0007
+
+# 做空方向的仓位乘数（< 1 表示同等条件下少开空头）
+short_penalty: 0.7
+
+# ADX/ATR 的 EWM 计算窗口。Wilder alpha=1/14 时 250 根后权重 < 1e-7。
+calc_window: 250

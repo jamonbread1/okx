@@ -1,0 +1,35 @@
+# RADX 策略参数（裸 key，无前缀）
+# 这是研究策略，默认不纳入自动规划。--only radx 单独验证。
+
+# SMA / EMA 周期
+sma_period: 50
+ema_period: 7
+
+# RSI / ADX 周期（社区原方案用 2/2）
+rsi_period: 2
+adx_period: 2
+
+# 单次开仓权益占比
+position_pct: 0.03
+
+# 止损 ATR 倍数
+sl_atr_mult: 3.0
+
+# TP 倍数（极远，实际由 v3.engine 的 RSI<ADX 退出条件控制）
+tp_r: 999.0
+
+# 最低 confidence（缺省时回退到 strategy.min_open_confidence）
+# min_confidence: 0.55   # 通常不写，用 config.yaml 的共享字段
+
+# 单边手续费
+fee_rt: 0.0010
+
+# 单边滑点
+slippage_pct: 0.0003
+
+# ATR / price 区间过滤
+min_atr_pct: 0.002
+max_atr_pct: 0.12
+
+# 仅做多（社区原方案 long-only）
+long_only: true

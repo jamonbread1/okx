@@ -1,0 +1,274 @@
+# ============================================================
+# OKX Quant v3 — 唯一配置文件（不再使用 config.json / v3/config.yaml）
+# 修改后直接生效：python -m v3.run_backtest --bar 1H
+# ============================================================
+
+mode: backtest
+capital_usdt: 10000.0
+leverage: 6.0
+leverage_min: 3.0
+leverage_max: 12.0
+td_mode: isolated
+use_demo: true
+multi_symbol: true
+symbol: BTC-USDT-SWAP
+
+# API（实盘用；回测可留空）
+api_key: ""
+api_secret: ""
+passphrase: ""
+
+universe:
+  prefer_only:
+    - BTC-USDT-SWAP
+    - ETH-USDT-SWAP
+    - SOL-USDT-SWAP
+    - DOGE-USDT-SWAP
+    - AVAX-USDT-SWAP
+  max_symbols: 5
+  alloc_mode: equal
+  min_vol_usdt_24h: 15000000
+  fixed_symbols: []
+  blacklist_bases: []
+  cross_hedge: false
+  enable_hedge: false
+
+risk:
+  cash_reserve_ratio: 0.18
+  max_position_ratio: 0.22
+  max_loss_pct_per_trade: 0.01
+  max_drawdown: 0.1
+  max_total_notional_ratio: 0.95
+  max_concurrent_symbols: 3
+  max_order_notional_mult: 2.5
+  volatility_pause_pct: 0.05
+  volatility_pause_cooldown_sec: 180
+  stop_on_breakout: false
+
+strategy:
+  name: okx_quant_v3
+  signal_bar: 1H
+  enabled_strategies:
+    - vol
+    - mr
+    - ewmac
+    - macd
+    - don
+    - ming
+  auto_plan_enabled: true
+
+  # 入场 / 回测真实性
+  min_open_confidence: 0.55
+  signal_on_closed_bar: true
+  bt_exec_at_open: true
+  enable_ob_fill: true
+  # 主执行方式：主动限价单。买单 limit=信号价+N*tick，卖单 limit=信号价-N*tick。
+  execution_order_type: aggressive_limit
+  aggressive_limit_ticks: 5
+  aggressive_limit_tick_fallback: 0.1
+  bt_slippage_stress: 1.5
+  bt_embargo_bars: 12
+
+  # Regime
+  regime_adx_trend: 25
+  regime_adx_exit: 20
+  regime_adx_chop: 20
+  regime_squeeze_threshold: 0.035
+
+  # 仓位模型
+  sizing_mode: kelly
+  target_daily_vol: 0.015
+
+  # HTF
+  htf_enabled: true
+  htf_bar: 4H
+  htf_ema_fast: 20
+  htf_ema_slow: 50
+  htf_min_gap: 0.001
+  htf_lookback: 90
+  signal_lookback: 160
+
+  # 冲突
+  conflict_window_min: 60
+
+  # 持仓管理
+  stop_loss_atr_mult: 2.0
+  take_profit_atr_mult: 2.5
+  trail_atr_mult: 2.0
+  position_timeout_sec: 43200
+  exit_mode: timeout
+  time_decay_step_hours: 6.0
+  time_decay_step_frac: 0.25
+
+  # 资金费
+  funding_settlement_hours: [0, 8, 16]
+  funding_tilt_enabled: true
+  funding_tilt_conf: 0.05
+  funding_max_abs: 0.0005
+
+  # 组合净敞口（默认关）
+  net_delta_enabled: false
+  net_delta_limit_mult: 1.8
+
+  # 回测费率/滑点（multi_engine；不设则用代码默认）
+  mom_maker_fee: 0.0002
+  mom_taker_fee: 0.0005
+  mom_slippage_pct: 0.00040
+  ema_break_slippage_pct: 0.00030
+  vol_break_slippage_pct: 0.00035
+
+  # --- VOL ---
+  vol_bb_period: 20
+  vol_bbw_squeeze: 0.035
+  vol_volume_mult: 1.3
+  vol_rsi_low: 35.0
+  vol_rsi_high: 65.0
+  vol_breakout_buffer: 0.0003
+  vol_position_pct: 0.05
+  vol_sl_atr_mult: 1.8
+  vol_tp_atr_mult: 3.5
+  vol_squeeze_hold: 3
+  vol_min_expectancy: 0.1
+  vol_slippage_pct: 0.00035
+  vol_fee_rt: 0.0007
+  vol_short_penalty: 0.7
+
+  # --- MR：RSI + Bollinger Bands 均值回归 ---
+  mr_bb_period: 20
+  mr_rsi_period: 14
+  mr_rsi_oversold: 30.0
+  mr_rsi_overbought: 70.0
+  mr_max_adx: 25.0
+  mr_ema_filter: 50
+  mr_ema_atr_mult: 2.5
+  mr_position_pct: 0.04
+  mr_sl_atr_mult: 2.0
+  mr_tp_atr_mult: 1.5
+  mr_min_expectancy: 0.05
+  mr_slippage_pct: 0.0003
+  mr_fee_rt: 0.0007
+
+  # --- RNG v4：Failed Breakout Mean Reversion ---
+  range_allow_long: true
+  range_allow_short: true
+  range_long_only: false
+  range_short_only: false
+  range_use_external_regime: false
+  range_allowed_regimes: [chop, mixed]
+  range_skip_htf: true
+  rng_timeout_bars: 3
+
+  # 区间
+  range_window: 30
+  range_min_range_pct: 0.025
+  range_max_range_pct: 0.25
+  range_min_range_atr: 2.5
+  range_max_range_atr: 10.0
+  range_touch_tolerance_atr: 0.20
+  range_touch_cooldown_bars: 2
+  range_min_upper_touches: 1
+  range_min_lower_touches: 1
+  range_min_total_touches: 3
+
+  # 趋势过滤
+  range_atr_period: 14
+  range_adx_period: 14
+  range_max_adx: 24.0
+  range_er_period: 30
+  range_max_efficiency_ratio: 0.42
+  range_ema_period: 50
+  range_ema_slope_bars: 5
+  range_max_ema_slope_atr: 1.15
+  range_max_countertrend_slope_atr: 0.75
+
+  # 波动率过滤
+  range_use_volatility_filter: true
+  range_volatility_lookback: 120
+  range_min_volatility_rank: 0.05
+  range_max_volatility_rank: 0.92
+
+  # setup / confirmation
+  range_min_sweep_atr: 0.05
+  range_max_sweep_atr: 1.50
+  range_min_reclaim_atr: 0.03
+  range_min_rejection_wick_ratio: 0.20
+  range_min_setup_close_location: 0.52
+  range_max_setup_range_atr: 3.25
+  range_min_confirmation_atr: 0.03
+  range_require_confirmation_body: true
+  range_max_confirmation_retest_atr: 0.10
+  range_max_entry_position: 0.30
+  range_max_entry_gap_atr: 0.50
+
+  # 退出结构 / 成本 / 风险
+  range_stop_buffer_atr: 0.15
+  range_min_sl_pct: 0.004
+  range_max_sl_pct: 0.06
+  range_target_fraction: 0.48
+  range_min_net_rr: 1.05
+  range_max_rr_for_confidence: 2.50
+  range_optimal_sweep_atr: 0.45
+  range_fee_round_trip: 0.0010
+  range_slippage_one_way: 0.0002
+  range_execution_cost_buffer: 0.0001
+  range_funding_interval_hours: 8.0
+  range_risk_pct: 0.0015
+  range_max_notional_pct: 0.08
+  range_position_pct: 0.08
+  range_long_size_multiplier: 1.0
+  range_short_size_multiplier: 1.0
+  range_base_confidence: 0.55
+
+  # --- RADX：日线 RSI(2) vs ADX(2) 趋势研究策略（默认不启用）---
+  radx_sma_period: 50
+  radx_ema_period: 7
+  radx_rsi_period: 2
+  radx_adx_period: 2
+  radx_position_pct: 0.03
+  radx_sl_atr_mult: 3.0
+  radx_tp_r: 999.0
+  radx_min_confidence: 0.55
+  radx_min_atr_pct: 0.002
+  radx_max_atr_pct: 0.12
+  radx_fee_rt: 0.0010
+  radx_slippage_pct: 0.0003
+  radx_long_only: true
+
+  # --- EWMAC ---
+  ewmac_fast_1: 8
+  ewmac_slow_1: 32
+  ewmac_fast_2: 16
+  ewmac_slow_2: 64
+  ewmac_threshold: 0.005
+  ewmac_min_adx: 20.0
+  ewmac_position_pct: 0.05
+  ewmac_sl_atr_mult: 2.0
+  ewmac_tp_atr_mult: 3.0
+  ewmac_slippage_pct: 0.0003
+  ewmac_fee_rt: 0.0007
+
+  # --- MACD ---
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  macd_rsi_low: 65.0
+  macd_rsi_high: 35.0
+  macd_min_adx: 25.0
+  macd_position_pct: 0.03
+  macd_sl_atr_mult: 1.8
+  macd_tp_atr_mult: 3.0
+  macd_slippage_pct: 0.0003
+  macd_fee_rt: 0.0007
+
+  # --- DON ---
+  don_period: 28
+  don_calc_window: 250
+  don_min_adx: 25.0
+  don_vol_ratio: 1.3
+  don_max_wick_ratio: 2.0
+  don_position_pct: 0.04
+  don_sl_atr_mult: 2.0
+  don_tp_atr_mult: 2.5
+  don_slippage_pct: 0.0004
+  don_fee_rt: 0.0007
+  don_short_penalty: 0.7

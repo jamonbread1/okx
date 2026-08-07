@@ -1,0 +1,26 @@
+# MACD 策略参数（裸 key，无前缀）
+
+# MACD 周期
+fast: 12
+slow: 26
+signal: 9
+
+# RSI 确认阈值
+#   做多时 RSI < rsi_low（避免极强多头钝化区域）
+#   做空时 RSI > rsi_high（避免极强空头钝化区域）
+# 命名延续自旧版，实际语义是"上限/下限"
+rsi_low: 65.0
+rsi_high: 35.0
+
+# ADX 下限
+min_adx: 20.0
+
+# 单次开仓权益占比
+position_pct: 0.04
+
+# 止损 / 止盈 ATR 倍数
+sl_atr_mult: 1.8
+tp_atr_mult: 3.0
+
+# 单边滑点
+slippage_pct: 0.0003
