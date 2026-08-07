@@ -357,9 +357,11 @@ def step_train(args) -> dict:
     with open(args.seed_dir + "/samples.json", "r", encoding="utf-8") as f:
         data = json.load(f)
     samples = data["samples"]
-    if len(samples) < 30:
-        print(f"❌ 样本数 {len(samples)} < 30, 训练意义不足")
+    if len(samples) < 6:
+        print(f"❌ 样本数 {len(samples)} < 6, surrogate 训练无意义")
         return {}
+    if len(samples) < 30:
+        print(f"⚠️  样本数 {len(samples)} < 30 (建议 >= 30)，surrogate 排名质量会差")
     space = [ParamSpace(**ps) for ps in data["param_space"]]
     pnames = param_names(space)
     X, y_sharpe, oos_dd, oos_trades, oos_sharpe_raw = _build_features(samples, space)
@@ -754,7 +756,11 @@ def _write_md_report(path: str, results: list, val_metrics: dict, corr: float, a
 # ---------------------------------------------------------------------------
 
 def step_all(args):
-    """seed → train → search 一条龙."""
+    """seed → train → search 一条龙.
+
+    样本阈值：min 6（够 surrogate 跑出非平凡解）; recommended >= 30.
+    < 30 仍继续跑但打 warning（surrogate 排名质量会明显下降）.
+    """
     seed_out = os.path.join(args.out_dir, "seed")
     train_out = os.path.join(args.out_dir, "surrogate")
     search_out = os.path.join(args.out_dir, "search")
@@ -763,9 +769,13 @@ def step_all(args):
     # 1. seed
     args_seed = argparse.Namespace(**{**vars(args), "out_dir": seed_out})
     seed_res = step_seed(args_seed)
-    if seed_res.get("n_succeeded", 0) < 30:
-        print("❌ 种子样本不足, 中止")
+    n_ok = seed_res.get("n_succeeded", 0)
+    if n_ok < 6:
+        print(f"❌ 种子样本过少 ({n_ok} < 6)，surrogate 无法训练。中止")
         return {}
+    if n_ok < 30:
+        print(f"⚠️  种子样本 {n_ok} 偏少 (建议 >= 30)，surrogate 排名质量会差，"
+              f"但仍会跑 — 仅供流程验证")
 
     # 2. train
     args_train = argparse.Namespace(**{**vars(args), "seed_dir": seed_out, "out_dir": train_out})

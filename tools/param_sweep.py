@@ -122,7 +122,12 @@ def local_overfit_check(results: List[dict]) -> List[str]:
     """
     if len(results) < 3:
         return []
-    sharpes = [r.get("oos_sharpe", 0) or 0 for r in results]
+    # results 可以是 List[SweepResult] (dataclass) 或 List[dict] (测试用). 同时支持.
+    def _oos_sharpe(r):
+        if isinstance(r, dict):
+            return float(r.get("oos_sharpe", 0) or 0)
+        return float(getattr(r, "oos_sharpe", 0) or 0)
+    sharpes = [_oos_sharpe(r) for r in results]
     sharpes_clean = [s for s in sharpes if s > 0]
     if not sharpes_clean:
         return []

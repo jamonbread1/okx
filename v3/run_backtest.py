@@ -117,6 +117,14 @@ def main():
                     help="只启用一个策略插件（name，见 --list-strategies）")
     ap.add_argument("--list-strategies", action="store_true",
                     help="列出已发现的策略插件并退出")
+    # ---- 策略参数覆盖（CLI 单点注入，v3.strategies.loader 会解析）----
+    # 接受 NAME=KEY=VAL 或 NAME:KEY=VAL 形式，可重复
+    # 例: --params ming:risk_pct=0.008 --params ming:r2_chandelier_k=3.5
+    ap.add_argument("--params", action="append", default=[],
+                    metavar="NAME=KEY=VAL",
+                    help="策略参数覆盖（可多次，NAME:KEY=VAL 形式）")
+    ap.add_argument("--extra-config", default="",
+                    help="YAML 覆盖文件路径（顶层 key 覆盖 strategy 段）")
     args = ap.parse_args()
 
     if args.list_strategies:
@@ -134,6 +142,14 @@ def main():
         return
 
     cfg = load_config(args.config)
+
+    # 注入 CLI 参数覆盖到 strategy 段
+    # v3.engine.StrategyEngine.__init__ 会读 _cli_overrides / _extra_config 并交给
+    # v3.strategies.loader.build_strategy_cfg 做合并 + 类型转换（int/float/bool/None）
+    if args.params:
+        cfg["strategy"]["_cli_overrides"] = list(args.params)
+    if args.extra_config:
+        cfg["strategy"]["_extra_config"] = args.extra_config
 
     if args.only:
         only = args.only.strip().lower()
@@ -167,6 +183,10 @@ def main():
     log.info(f"回测 bar={args.bar} IS={args.is_ratio:.0%} "
              f"strategies={cfg['strategy'].get('enabled_strategies', [])} "
              f"range={start or 'min'}→{end or 'max'}")
+    if cfg["strategy"].get("_cli_overrides"):
+        log.info(f"CLI 参数覆盖: {cfg['strategy']['_cli_overrides']}")
+    if cfg["strategy"].get("_extra_config"):
+        log.info(f"CLI 额外配置: {cfg['strategy']['_extra_config']}")
 
     is_m, oos_m, cmp = run_multi_from_parquet(
         cfg,

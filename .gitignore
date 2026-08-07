@@ -41,6 +41,8 @@ data/walk_forward/
 data/diagnose*.md
 data/*.log
 data/*.tmp
+# OKX 历史 K 线库（sandbox 用 tools/_synth_data.py 生成，真实数据本地有）
+data/okx_history/
 
 # Jupyter
 .ipynb_checkpoints/
